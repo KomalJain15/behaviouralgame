@@ -1,0 +1,643 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>What Kind of Decision Maker Are You?</title>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=DM+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    background: #FBF8F3;
+    color: #2D2A26;
+    font-family: 'DM Sans', sans-serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+  ::selection { background: #F5DCC8; color: #D4793A; }
+  button { cursor: pointer; font-family: 'Outfit', sans-serif; }
+  button:active { transform: scale(0.97) !important; }
+  .outfit { font-family: 'Outfit', sans-serif; }
+  .mono { font-family: 'Space Mono', monospace; }
+
+  /* ── Animations ── */
+  @keyframes gentleFloat { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-8px)} }
+  @keyframes softFloat { 0%,100%{transform:translate(0,0) scale(1)} 33%{transform:translate(8px,-6px) scale(1.03)} 66%{transform:translate(-5px,4px) scale(0.98)} }
+  @keyframes gentlePulse { 0%,100%{transform:scale(1)} 50%{transform:scale(1.1)} }
+  @keyframes fadeUp { 0%{opacity:0;transform:translateY(40px)} 100%{opacity:1;transform:translateY(0)} }
+  @keyframes fadeIn { 0%{opacity:0} 100%{opacity:1} }
+  @keyframes barGrow { 0%{width:0%} }
+
+  /* ── Screens ── */
+  .screen { display:none; min-height:100vh; }
+  .screen.active { display:flex; }
+
+  /* ── Landing ── */
+  #landing {
+    flex-direction:column; align-items:center; justify-content:center;
+    text-align:center; padding:32px; position:relative; overflow:hidden;
+  }
+  .blob {
+    position:absolute; border-radius:50%; opacity:0.5; filter:blur(40px);
+    animation: softFloat 10s ease-in-out infinite;
+  }
+  .blob-1 { width:300px;height:300px;background:#F5DCC8;top:-80px;right:-60px;animation-duration:8s }
+  .blob-2 { width:220px;height:220px;background:#C8E6E3;bottom:-40px;left:-70px;animation-duration:10s;animation-delay:0.8s }
+  .blob-3 { width:180px;height:180px;background:#F2D5DD;top:40%;left:-50px;animation-duration:12s;animation-delay:1.6s }
+  .blob-4 { width:140px;height:140px;background:#D4DFEF;bottom:20%;right:-30px;animation-duration:14s;animation-delay:2.4s }
+
+  .landing-content { position:relative; z-index:1; animation: fadeUp 1s cubic-bezier(0.16,1,0.3,1); }
+  .brain-emoji { font-size:64px; margin-bottom:20px; animation: gentleFloat 3s ease-in-out infinite; }
+  .tag-pill {
+    display:inline-block; background:#F5DCC8; color:#D4793A;
+    padding:6px 16px; border-radius:20px; font-size:11px;
+    font-weight:700; letter-spacing:2px; text-transform:uppercase; margin-bottom:24px;
+  }
+  .landing-title {
+    font-family:'Outfit',sans-serif; font-weight:800;
+    font-size:clamp(30px,6.5vw,52px); line-height:1.15;
+    color:#2D2A26; margin-bottom:16px; max-width:520px;
+  }
+  .gradient-text {
+    background:linear-gradient(135deg,#D4793A,#C75B7A,#3A8C84);
+    -webkit-background-clip:text; -webkit-text-fill-color:transparent;
+  }
+  .landing-sub { color:#9B948A; font-size:15px; line-height:1.7; max-width:400px; margin:0 auto 36px; }
+
+  .start-btn {
+    background:#2D2A26; color:#fff; border:none;
+    padding:16px 44px; border-radius:50px; font-size:15px;
+    font-weight:700; letter-spacing:0.5px;
+    transition: all 0.35s cubic-bezier(0.16,1,0.3,1);
+    box-shadow: 0 6px 20px #2D2A2615;
+  }
+  .start-btn:hover { background:#D4793A; transform:scale(1.05); box-shadow:0 12px 32px #D4793A40; }
+  .landing-note { color:#9B948A; font-size:12px; margin-top:20px; opacity:0.6; }
+
+  /* ── Scenario ── */
+  #scenario { flex-direction:column; padding:24px 24px 40px; max-width:620px; margin:0 auto; }
+  .progress-bar { display:flex; gap:6px; margin-bottom:28px; }
+  .progress-pip { flex:1; height:5px; border-radius:3px; background:#E8E2D8; transition:background 0.5s; }
+  .progress-pip.done { background:#D4793A; }
+  .progress-pip.current { background:#F5DCC8; }
+
+  .scenario-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:28px; }
+  .scenario-meta { font-size:12px; font-weight:700; letter-spacing:2px; text-transform:uppercase; color:#9B948A; }
+  .diff-badge {
+    font-size:10px; font-weight:700; letter-spacing:1.5px; text-transform:uppercase;
+    padding:3px 10px; border-radius:10px; margin-left:10px; display:inline-block;
+  }
+  .scenario-title {
+    font-family:'Outfit',sans-serif; font-size:24px; font-weight:800;
+    color:#2D2A26; margin-top:4px; display:flex; align-items:center; gap:10px;
+  }
+  .timer-note { font-size:11px; color:#9B948A; margin-top:4px; }
+
+  .scenario-body { animation: fadeUp 0.7s cubic-bezier(0.16,1,0.3,1); flex:1; display:flex; flex-direction:column; }
+  .scenario-card {
+    background:#fff; border-radius:20px; padding:24px 22px;
+    border:1.5px solid #E8E2D8; margin-bottom:24px;
+    box-shadow:0 2px 12px rgba(0,0,0,0.04);
+  }
+  .scenario-text { color:#5C5750; font-size:16px; line-height:1.75; font-style:italic; }
+  .what-label { font-size:12px; color:#9B948A; letter-spacing:1.5px; text-transform:uppercase; margin-bottom:14px; font-weight:700; }
+
+  .option-btn {
+    background:#fff; border:1.5px solid #E8E2D8; border-radius:16px;
+    padding:16px 18px; text-align:left; width:100%; margin-bottom:10px;
+    display:flex; align-items:center; gap:14px; font-family:'DM Sans',sans-serif;
+    transition:all 0.35s cubic-bezier(0.16,1,0.3,1);
+    box-shadow:0 1px 4px rgba(0,0,0,0.04); font-size:15px; line-height:1.5; color:#5C5750;
+  }
+  .option-btn:hover:not(.disabled) { border-color:#D4793A; transform:scale(1.01); }
+  .option-btn.selected { transform:scale(1.02); font-weight:600; }
+  .option-btn.faded { opacity:0.35; transform:scale(0.97); }
+  .option-btn.disabled { cursor:default; }
+  .option-letter {
+    width:34px; height:34px; border-radius:50%; background:#F4F0EA;
+    border:1.5px solid #E8E2D8; display:flex; align-items:center;
+    justify-content:center; font-size:13px; font-weight:700; color:#9B948A;
+    flex-shrink:0; transition:all 0.3s;
+  }
+
+  /* ── Timer ── */
+  .timer-wrap { position:relative; width:80px; height:80px; flex-shrink:0; }
+  .timer-num {
+    position:absolute; inset:0; display:flex; align-items:center;
+    justify-content:center; font-family:'Space Mono',monospace;
+    font-size:22px; font-weight:700; color:#D4793A; transition:all 0.3s;
+  }
+  .timer-num.urgent { color:#C75B7A; font-size:24px; animation:gentlePulse 0.7s ease-in-out infinite; }
+
+  /* ── Timeout ── */
+  #timeout {
+    flex-direction:column; align-items:center; justify-content:center;
+    text-align:center; padding:32px; animation:fadeIn 0.5s;
+  }
+  .timeout-icon {
+    width:80px;height:80px;border-radius:50%;background:#F5DCC8;
+    display:flex;align-items:center;justify-content:center;font-size:36px;margin-bottom:20px;
+  }
+  .timeout-title { font-family:'Outfit',sans-serif; font-size:28px; font-weight:800; color:#2D2A26; margin-bottom:10px; }
+  .timeout-sub { color:#5C5750; font-size:15px; line-height:1.7; max-width:340px; margin-bottom:10px; }
+  .timeout-badge {
+    display:inline-block; background:#D8EAD1; color:#7A9E6D;
+    padding:6px 14px; border-radius:20px; font-size:13px; font-weight:600; margin-bottom:28px;
+  }
+  .continue-btn {
+    background:#2D2A26; color:#fff; border:none; padding:14px 36px;
+    border-radius:30px; font-size:14px; font-weight:700;
+    box-shadow:0 6px 20px #2D2A2615;
+  }
+
+  /* ── Results ── */
+  #result { flex-direction:column; padding:48px 24px 60px; max-width:580px; margin:0 auto; }
+  .result-header { text-align:center; margin-bottom:40px; }
+  .result-header.anim { animation: fadeUp 1s cubic-bezier(0.16,1,0.3,1); }
+  .result-title { font-family:'Outfit',sans-serif; font-size:26px; font-weight:800; color:#2D2A26; margin-bottom:6px; }
+  .result-sub { color:#9B948A; font-size:13px; }
+
+  .traits-card {
+    background:#fff; border-radius:20px; padding:24px 22px;
+    border:1.5px solid #E8E2D8; margin-bottom:28px;
+    box-shadow:0 2px 12px rgba(0,0,0,0.04);
+    opacity:0; transform:translateY(20px);
+    transition:all 0.7s cubic-bezier(0.16,1,0.3,1);
+  }
+  .traits-card.show { opacity:1; transform:translateY(0); }
+
+  .trait-row { margin-bottom:16px; }
+  .trait-label { display:flex; justify-content:space-between; margin-bottom:6px; }
+  .trait-name { font-size:13px; color:#5C5750; font-weight:600; }
+  .trait-pct { font-size:13px; font-weight:700; }
+  .trait-track { height:8px; border-radius:4px; overflow:hidden; }
+  .trait-fill { height:100%; border-radius:4px; width:0%; transition:width 1.2s cubic-bezier(0.16,1,0.3,1); }
+
+  .profile-card {
+    background:#fff; border-radius:24px; padding:32px 26px;
+    margin-bottom:24px; position:relative; overflow:hidden;
+    opacity:0; transform:translateY(30px) scale(0.95);
+    transition:all 0.9s cubic-bezier(0.16,1,0.3,1);
+  }
+  .profile-card.show { opacity:1; transform:translateY(0) scale(1); }
+  .profile-accent { position:absolute; top:0; left:0; right:0; height:6px; border-radius:24px 24px 0 0; }
+  .profile-emoji {
+    width:64px;height:64px;border-radius:18px;display:flex;
+    align-items:center;justify-content:center;font-size:32px;margin-bottom:16px;margin-top:8px;
+  }
+  .profile-label { font-size:11px; font-weight:700; letter-spacing:2px; text-transform:uppercase; margin-bottom:6px; }
+  .profile-title { font-family:'Outfit',sans-serif; font-size:30px; font-weight:800; color:#2D2A26; margin-bottom:8px; line-height:1.15; }
+  .profile-tagline { font-size:14px; font-style:italic; margin-bottom:18px; opacity:0.85; font-weight:500; }
+  .profile-desc { color:#5C5750; font-size:14px; line-height:1.8; margin-bottom:24px; }
+  .profile-grid { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+  .profile-box { border-radius:14px; padding:16px; }
+  .profile-box-label { font-size:10px; font-weight:700; letter-spacing:2px; text-transform:uppercase; margin-bottom:6px; }
+  .profile-box-text { color:#5C5750; font-size:13px; line-height:1.5; }
+
+  .restart-btn {
+    background:#F4F0EA; color:#5C5750; border:1.5px solid #E8E2D8;
+    padding:12px 32px; border-radius:30px; font-size:13px; font-weight:600;
+  }
+  .footer-note { color:#9B948A; font-size:11px; margin-top:16px; opacity:0.6; }
+</style>
+</head>
+<body>
+
+<!-- ══════════ LANDING ══════════ -->
+<div id="landing" class="screen active">
+  <div class="blob blob-1"></div>
+  <div class="blob blob-2"></div>
+  <div class="blob blob-3"></div>
+  <div class="blob blob-4"></div>
+  <div class="landing-content">
+    <div class="brain-emoji">🧠</div>
+    <div class="tag-pill">A Behavioral Experiment</div>
+    <h1 class="landing-title">
+      What Kind of <span class="gradient-text">Decision Maker</span> Are You?
+    </h1>
+    <p class="landing-sub">
+      7 real-life scenarios that get harder as you go. Less time for easy calls,
+      more time when it counts. Trust your first instinct.
+    </p>
+    <button class="start-btn" onclick="startGame()">Start the Experiment →</button>
+    <p class="landing-note">Takes about 2 minutes</p>
+  </div>
+</div>
+
+<!-- ══════════ SCENARIO ══════════ -->
+<div id="scenario" class="screen">
+  <div class="progress-bar" id="progressBar"></div>
+  <div class="scenario-header">
+    <div>
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:4px">
+        <span class="scenario-meta" id="scenarioMeta"></span>
+        <span class="diff-badge" id="diffBadge"></span>
+      </div>
+      <div class="scenario-title" id="scenarioTitle"></div>
+      <div class="timer-note" id="timerNote"></div>
+    </div>
+    <div class="timer-wrap">
+      <svg width="80" height="80" style="transform:rotate(-90deg)">
+        <circle cx="40" cy="40" r="34" fill="none" stroke="#E8E2D8" stroke-width="4"/>
+        <circle id="timerCircle" cx="40" cy="40" r="34" fill="none" stroke="#D4793A"
+          stroke-width="4" stroke-dasharray="213.63" stroke-dashoffset="0"
+          stroke-linecap="round" style="transition:stroke-dashoffset 0.9s linear,stroke 0.3s"/>
+      </svg>
+      <div class="timer-num" id="timerNum">10</div>
+    </div>
+  </div>
+  <div class="scenario-body" id="scenarioBody">
+    <div class="scenario-card">
+      <p class="scenario-text" id="scenarioText"></p>
+    </div>
+    <div class="what-label">What do you do?</div>
+    <div id="optionsContainer"></div>
+  </div>
+</div>
+
+<!-- ══════════ TIMEOUT ══════════ -->
+<div id="timeout" class="screen">
+  <div class="timeout-icon">⏰</div>
+  <h2 class="timeout-title">Time's Up!</h2>
+  <p class="timeout-sub">Hesitation is a decision too. Your brain chose to wait, and that tells us something.</p>
+  <div class="timeout-badge">+3 Avoidant · +1 Cautious</div>
+  <button class="continue-btn" onclick="continueAfterTimeout()">Continue →</button>
+</div>
+
+<!-- ══════════ RESULT ══════════ -->
+<div id="result" class="screen">
+  <div class="result-header" id="resultHeader">
+    <div class="tag-pill">Experiment Complete ✓</div>
+    <h2 class="result-title">Your Behavioral Breakdown</h2>
+    <p class="result-sub">Based on 7 high-pressure decisions</p>
+  </div>
+  <div class="traits-card" id="traitsCard"></div>
+  <div class="profile-card" id="profileCard"></div>
+  <div style="text-align:center" id="restartWrap">
+    <button class="restart-btn" onclick="restartGame()">Retake Experiment</button>
+    <p class="footer-note">Built as a behavioral psychology exploration project</p>
+  </div>
+</div>
+
+<script>
+/* ═══════════════════════════════════════════
+   DATA
+   ═══════════════════════════════════════════ */
+
+const DIFF_LABELS = ["Easy","Easy","Medium","Medium","Hard","Hard","Extreme"];
+const DIFF_COLORS = ["#3A8C84","#3A8C84","#D4793A","#D4793A","#C75B7A","#C75B7A","#8B6DB0"];
+
+const SCENARIOS = [
+  {
+    context:"The Spill", emoji:"☕", timer:10, difficulty:0,
+    setup:"You're walking into a meeting with a full coffee. Someone bumps into you and it splashes all over your shirt. They don't even notice.",
+    options:[
+      {text:"Call after them — 'Hey, you just spilled my coffee!'",traits:{control:2,impulsive:2}},
+      {text:"Laugh it off and grab napkins from the nearest table",traits:{strategic:2,cautious:1}},
+      {text:"Say nothing and quietly clean yourself up in the bathroom",traits:{avoidant:3,cautious:1}},
+    ],
+  },
+  {
+    context:"The Text", emoji:"📱", timer:10, difficulty:1,
+    setup:"Someone you've been interested in texts you 'we need to talk' with no context. You're in the middle of something important.",
+    options:[
+      {text:"Drop everything and reply immediately — 'About what?'",traits:{impulsive:3,risk:1}},
+      {text:"Finish what you're doing first, then respond calmly",traits:{strategic:2,control:2}},
+      {text:"Leave it on read for now — if it's urgent they'll call",traits:{avoidant:2,risk:2}},
+    ],
+  },
+  {
+    context:"The Favor", emoji:"🤝", timer:12, difficulty:2,
+    setup:"A close friend asks you to cover for them — they want you to tell their partner they were with you last night, but they weren't. They seem desperate.",
+    options:[
+      {text:"Agree this one time — they clearly need you right now",traits:{risk:2,impulsive:2}},
+      {text:"Say no, but offer to help them figure out the real situation",traits:{strategic:3,control:1}},
+      {text:"Flat-out refuse — you're not getting pulled into this",traits:{cautious:3,avoidant:1}},
+    ],
+  },
+  {
+    context:"The Credit", emoji:"💼", timer:12, difficulty:3,
+    setup:"During a team presentation, your manager presents your idea as their own in front of senior leadership. Everyone is nodding along. Your coworkers glance at you.",
+    options:[
+      {text:"Speak up in the meeting — 'I'd love to add context since I developed this'",traits:{risk:3,control:1}},
+      {text:"Stay quiet now but schedule a private conversation with your manager after",traits:{strategic:3,cautious:1}},
+      {text:"Let it slide — pushing back could backfire on you politically",traits:{avoidant:2,cautious:2}},
+    ],
+  },
+  {
+    context:"The Secret", emoji:"🔒", timer:15, difficulty:4,
+    setup:"You accidentally find out that a friend is planning to drop out of school to pursue a business idea you think is genuinely terrible. They haven't told anyone else yet and seem excited.",
+    options:[
+      {text:"Be honest — tell them directly that you think it's a mistake",traits:{control:2,risk:2}},
+      {text:"Ask thoughtful questions to help them stress-test the idea themselves",traits:{strategic:3,cautious:1}},
+      {text:"Keep quiet — it's their life and they didn't ask for your opinion",traits:{avoidant:3,impulsive:1}},
+    ],
+  },
+  {
+    context:"The Discovery", emoji:"📋", timer:15, difficulty:5,
+    setup:"You discover that a coworker you genuinely like has been quietly inflating their numbers on team reports. Nobody else has noticed. Reporting it could get them fired during a really hard time in their life.",
+    options:[
+      {text:"Report it — integrity matters more than personal loyalty",traits:{control:3,strategic:1}},
+      {text:"Confront them privately and give them a chance to come clean on their own",traits:{strategic:2,risk:2}},
+      {text:"Stay out of it — it's not your responsibility and you don't know the full story",traits:{avoidant:2,cautious:2}},
+    ],
+  },
+  {
+    context:"The Dilemma", emoji:"⚖️", timer:18, difficulty:6,
+    setup:"You're offered your dream job — but taking it means relocating across the country, leaving behind a parent who's recently been diagnosed with a chronic illness. They insist they'll be fine and want you to go. You're not sure they mean it.",
+    options:[
+      {text:"Take the job — they told you to go, and you can't build your future around guilt",traits:{risk:3,impulsive:1}},
+      {text:"Negotiate hard for remote work or a delayed start to buy time for both of you",traits:{strategic:3,control:1}},
+      {text:"Turn it down — some opportunities aren't worth the cost, and you'd never forgive yourself",traits:{cautious:2,avoidant:2}},
+    ],
+  },
+];
+
+const TRAITS_META = {
+  strategic:{label:"Strategic",color:"#3A8C84",bg:"#C8E6E3"},
+  impulsive:{label:"Impulsive",color:"#C75B7A",bg:"#F2D5DD"},
+  risk:{label:"Risk-Taking",color:"#D4793A",bg:"#F5DCC8"},
+  cautious:{label:"Cautious",color:"#5B7FC7",bg:"#D4DFEF"},
+  control:{label:"Controlling",color:"#8B6DB0",bg:"#E2D5F0"},
+  avoidant:{label:"Avoidant",color:"#7A9E6D",bg:"#D8EAD1"},
+};
+
+const PROFILES = [
+  {trait:"strategic",title:"The Strategic Thinker",emoji:"♟️",color:"#3A8C84",soft:"#C8E6E3",
+    tagline:"You don't just play the game — you play three moves ahead.",
+    desc:"You process decisions like a chess player. Where others react, you analyze. You weigh outcomes, consider second-order effects, and rarely make a move without understanding the board. People come to you when the stakes are high because your clarity under pressure is rare.",
+    strength:"Long-term thinking & pattern recognition",watch:"Analysis paralysis — sometimes the best move is any move."},
+  {trait:"impulsive",title:"The Impulsive Reactor",emoji:"⚡",color:"#C75B7A",soft:"#F2D5DD",
+    tagline:"You trust your gut — and your gut is FAST.",
+    desc:"You make decisions at the speed of instinct. While others deliberate, you've already acted. This gives you a massive advantage in fast-moving situations where hesitation kills. Your spontaneity is magnetic, and your energy is contagious.",
+    strength:"Speed, adaptability & raw authenticity",watch:"Regret can follow speed — a 5-second pause can save a 5-hour fix."},
+  {trait:"risk",title:"The Risk Explorer",emoji:"🎲",color:"#D4793A",soft:"#F5DCC8",
+    tagline:"The safe choice? That's the risky one — you might miss out.",
+    desc:"You're drawn to uncertainty the way others are drawn to comfort. You see opportunity where others see danger, and you've learned that the biggest rewards hide behind the scariest doors. Your tolerance for ambiguity is your superpower.",
+    strength:"Boldness, opportunity recognition & resilience",watch:"Not every risk is worth taking — know when the odds aren't in your favor."},
+  {trait:"cautious",title:"The Cautious Planner",emoji:"🛡️",color:"#5B7FC7",soft:"#D4DFEF",
+    tagline:"Measure twice, cut once — or better yet, measure three times.",
+    desc:"You value security, preparation, and making sure the ground beneath you is solid before taking a step. This isn't fear — it's wisdom. You've seen what happens when people rush, and you refuse to be that person. Your decisions age well.",
+    strength:"Reliability, thoroughness & emotional steadiness",watch:"Waiting for perfect conditions means waiting forever. Good enough is sometimes great."},
+  {trait:"control",title:"The Command Center",emoji:"🎯",color:"#8B6DB0",soft:"#E2D5F0",
+    tagline:"If you want it done right, you'll make sure it gets done right.",
+    desc:"You have a natural gravitational pull toward leadership — not because you crave power, but because you trust your own judgment. When chaos erupts, you're the one building structure. You turn ambiguity into action plans and uncertainty into organized execution.",
+    strength:"Leadership, accountability & organizational clarity",watch:"Delegation isn't losing control — it's multiplying your impact."},
+  {trait:"avoidant",title:"The Quiet Observer",emoji:"🌊",color:"#7A9E6D",soft:"#D8EAD1",
+    tagline:"Not every battle needs a warrior. Some need a witness.",
+    desc:"You have a rare ability to let situations unfold without forcing your hand. Where others rush to act, you observe, absorb, and wait for the right moment. This patience gives you a perspective others miss — you see the full picture while everyone else is reacting to fragments.",
+    strength:"Patience, perception & emotional conservation",watch:"Watching from the sidelines too long can mean missing your moment entirely."},
+];
+
+const OPT_COLORS = [
+  {border:"#D4793A",bg:"#F5DCC8",text:"#D4793A"},
+  {border:"#3A8C84",bg:"#C8E6E3",text:"#3A8C84"},
+  {border:"#5B7FC7",bg:"#D4DFEF",text:"#5B7FC7"},
+];
+
+/* ═══════════════════════════════════════════
+   STATE
+   ═══════════════════════════════════════════ */
+let currentQ = 0;
+let scores = {strategic:0,impulsive:0,risk:0,cautious:0,control:0,avoidant:0};
+let timerInterval = null;
+let timerValue = 0;
+let answered = false;
+
+/* ═══════════════════════════════════════════
+   HELPERS
+   ═══════════════════════════════════════════ */
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+
+function addTraits(traits) {
+  for (const [k,v] of Object.entries(traits)) { scores[k] = (scores[k]||0) + v; }
+}
+
+/* ═══════════════════════════════════════════
+   GAME FLOW
+   ═══════════════════════════════════════════ */
+function startGame() {
+  currentQ = 0;
+  scores = {strategic:0,impulsive:0,risk:0,cautious:0,control:0,avoidant:0};
+  showScenario();
+}
+
+function showScenario() {
+  answered = false;
+  const s = SCENARIOS[currentQ];
+  const total = SCENARIOS.length;
+
+  // Progress bar
+  const pb = document.getElementById('progressBar');
+  pb.innerHTML = '';
+  for (let i = 0; i < total; i++) {
+    const pip = document.createElement('div');
+    pip.className = 'progress-pip' + (i < currentQ ? ' done' : i === currentQ ? ' current' : '');
+    pb.appendChild(pip);
+  }
+
+  // Header
+  document.getElementById('scenarioMeta').textContent = `Scenario ${currentQ+1} of ${total}`;
+  const badge = document.getElementById('diffBadge');
+  badge.textContent = DIFF_LABELS[s.difficulty];
+  badge.style.color = DIFF_COLORS[s.difficulty];
+  badge.style.background = DIFF_COLORS[s.difficulty] + '18';
+
+  document.getElementById('scenarioTitle').innerHTML = `<span>${s.emoji}</span> ${s.context}`;
+  document.getElementById('timerNote').textContent = `${s.timer} seconds to decide`;
+
+  // Scenario text
+  document.getElementById('scenarioText').textContent = `"${s.setup}"`;
+
+  // Options
+  const oc = document.getElementById('optionsContainer');
+  oc.innerHTML = '';
+  s.options.forEach((opt, i) => {
+    const btn = document.createElement('button');
+    btn.className = 'option-btn';
+    btn.innerHTML = `
+      <div class="option-letter" id="letter-${i}">${String.fromCharCode(65+i)}</div>
+      <span id="opttext-${i}">${opt.text}</span>
+    `;
+    btn.onclick = () => selectOption(i);
+    oc.appendChild(btn);
+  });
+
+  // Reset body animation
+  const body = document.getElementById('scenarioBody');
+  body.style.animation = 'none';
+  body.offsetHeight; // trigger reflow
+  body.style.animation = 'fadeUp 0.7s cubic-bezier(0.16,1,0.3,1)';
+
+  // Timer
+  startTimer(s.timer);
+  showScreen('scenario');
+}
+
+function startTimer(total) {
+  clearInterval(timerInterval);
+  timerValue = total;
+  const circ = 2 * Math.PI * 34;
+  const circle = document.getElementById('timerCircle');
+  const num = document.getElementById('timerNum');
+
+  circle.style.strokeDasharray = circ;
+  circle.style.strokeDashoffset = 0;
+  circle.style.stroke = '#D4793A';
+  num.textContent = timerValue;
+  num.className = 'timer-num';
+
+  timerInterval = setInterval(() => {
+    timerValue--;
+    num.textContent = timerValue;
+
+    const pct = timerValue / total;
+    circle.style.strokeDashoffset = circ * (1 - pct);
+
+    if (timerValue <= 3) {
+      circle.style.stroke = '#C75B7A';
+      num.className = 'timer-num urgent';
+    }
+
+    if (timerValue <= 0) {
+      clearInterval(timerInterval);
+      if (!answered) handleTimeout();
+    }
+  }, 1000);
+}
+
+function selectOption(idx) {
+  if (answered) return;
+  answered = true;
+  clearInterval(timerInterval);
+
+  const s = SCENARIOS[currentQ];
+  const btns = document.querySelectorAll('.option-btn');
+  const clr = OPT_COLORS[idx];
+
+  btns.forEach((btn, i) => {
+    btn.classList.add('disabled');
+    if (i === idx) {
+      btn.classList.add('selected');
+      btn.style.background = clr.bg;
+      btn.style.borderColor = clr.border;
+      btn.querySelector('.option-letter').style.background = clr.border;
+      btn.querySelector('.option-letter').style.color = '#fff';
+      btn.querySelector('.option-letter').style.border = 'none';
+      btn.querySelector('span').style.color = clr.text;
+      btn.querySelector('span').style.fontWeight = '600';
+    } else {
+      btn.classList.add('faded');
+    }
+  });
+
+  addTraits(s.options[idx].traits);
+
+  setTimeout(() => {
+    if (currentQ + 1 >= SCENARIOS.length) {
+      showResult();
+    } else {
+      currentQ++;
+      showScenario();
+    }
+  }, 600);
+}
+
+function handleTimeout() {
+  addTraits({avoidant:3, cautious:1});
+  showScreen('timeout');
+}
+
+function continueAfterTimeout() {
+  if (currentQ + 1 >= SCENARIOS.length) {
+    showResult();
+  } else {
+    currentQ++;
+    showScenario();
+  }
+}
+
+/* ═══════════════════════════════════════════
+   RESULTS
+   ═══════════════════════════════════════════ */
+function showResult() {
+  showScreen('result');
+
+  const header = document.getElementById('resultHeader');
+  header.classList.remove('anim');
+  void header.offsetHeight;
+  header.classList.add('anim');
+
+  // Find top trait
+  const maxScore = Math.max(...Object.values(scores), 1);
+  const topTrait = Object.entries(scores).sort((a,b) => b[1]-a[1])[0][0];
+  const profile = PROFILES.find(p => p.trait === topTrait) || PROFILES[0];
+
+  // Build trait bars
+  const tc = document.getElementById('traitsCard');
+  tc.classList.remove('show');
+  tc.innerHTML = '';
+  for (const [key, meta] of Object.entries(TRAITS_META)) {
+    const pct = Math.round(((scores[key]||0) / maxScore) * 100);
+    tc.innerHTML += `
+      <div class="trait-row">
+        <div class="trait-label">
+          <span class="trait-name">${meta.label}</span>
+          <span class="trait-pct" style="color:${meta.color}">${pct}%</span>
+        </div>
+        <div class="trait-track" style="background:${meta.bg}">
+          <div class="trait-fill" id="bar-${key}" style="background:${meta.color}" data-pct="${pct}"></div>
+        </div>
+      </div>
+    `;
+  }
+
+  // Build profile card
+  const pc = document.getElementById('profileCard');
+  pc.classList.remove('show');
+  pc.style.border = `2px solid ${profile.color}30`;
+  pc.style.boxShadow = `0 8px 40px ${profile.color}12`;
+  pc.innerHTML = `
+    <div class="profile-accent" style="background:linear-gradient(90deg,${profile.color},${profile.soft})"></div>
+    <div class="profile-emoji" style="background:${profile.soft}">${profile.emoji}</div>
+    <div class="profile-label" style="color:${profile.color}">Your Profile</div>
+    <h2 class="profile-title">${profile.title}</h2>
+    <p class="profile-tagline" style="color:${profile.color}">"${profile.tagline}"</p>
+    <p class="profile-desc">${profile.desc}</p>
+    <div class="profile-grid">
+      <div class="profile-box" style="background:#C8E6E3">
+        <div class="profile-box-label" style="color:#3A8C84">✦ Strength</div>
+        <div class="profile-box-text">${profile.strength}</div>
+      </div>
+      <div class="profile-box" style="background:#F2D5DD">
+        <div class="profile-box-label" style="color:#C75B7A">⚠ Watch Out</div>
+        <div class="profile-box-text">${profile.watch}</div>
+      </div>
+    </div>
+  `;
+
+  // Animate in sequence
+  setTimeout(() => {
+    tc.classList.add('show');
+    // Animate bars with stagger
+    setTimeout(() => {
+      const bars = tc.querySelectorAll('.trait-fill');
+      bars.forEach((bar, i) => {
+        setTimeout(() => { bar.style.width = bar.dataset.pct + '%'; }, i * 150);
+      });
+    }, 300);
+  }, 800);
+
+  setTimeout(() => { pc.classList.add('show'); }, 1800);
+}
+
+function restartGame() {
+  startGame();
+}
+</script>
+</body>
+</html>
