@@ -200,6 +200,16 @@
     padding:12px 32px; border-radius:30px; font-size:13px; font-weight:600;
   }
   .footer-note { color:#9B948A; font-size:11px; margin-top:16px; opacity:0.6; }
+
+  /* ── Ready Button ── */
+  .ready-btn {
+    background:#2D2A26; color:#fff; border:none;
+    padding:14px 40px; border-radius:30px; font-size:15px;
+    font-weight:700; letter-spacing:0.5px;
+    box-shadow:0 6px 20px rgba(45,42,38,0.15);
+    transition: all 0.3s cubic-bezier(0.16,1,0.3,1);
+  }
+  .ready-btn:hover { background:#D4793A; transform:scale(1.05); box-shadow:0 10px 28px rgba(212,121,58,0.3); }
 </style>
 </head>
 <body>
@@ -217,8 +227,8 @@
       What Kind of <span class="gradient-text">Decision Maker</span> Are You?
     </h1>
     <p class="landing-sub">
-      7 real-life scenarios that get harder as you go. Less time for easy calls,
-      more time when it counts. Trust your first instinct.
+      7 real-life scenarios that get harder as you go. Read each one at your own pace —
+      then decide under pressure. Trust your first instinct.
     </p>
     <button class="start-btn" onclick="startGame()">Start the Experiment →</button>
     <p class="landing-note">Takes about 2 minutes</p>
@@ -237,22 +247,30 @@
       <div class="scenario-title" id="scenarioTitle"></div>
       <div class="timer-note" id="timerNote"></div>
     </div>
-    <div class="timer-wrap">
+    <div class="timer-wrap" id="timerWrap" style="opacity:0.25">
       <svg width="80" height="80" style="transform:rotate(-90deg)">
         <circle cx="40" cy="40" r="34" fill="none" stroke="#E8E2D8" stroke-width="4"/>
         <circle id="timerCircle" cx="40" cy="40" r="34" fill="none" stroke="#D4793A"
           stroke-width="4" stroke-dasharray="213.63" stroke-dashoffset="0"
           stroke-linecap="round" style="transition:stroke-dashoffset 0.9s linear,stroke 0.3s"/>
       </svg>
-      <div class="timer-num" id="timerNum">10</div>
+      <div class="timer-num" id="timerNum">–</div>
     </div>
   </div>
   <div class="scenario-body" id="scenarioBody">
     <div class="scenario-card">
       <p class="scenario-text" id="scenarioText"></p>
     </div>
-    <div class="what-label">What do you do?</div>
-    <div id="optionsContainer"></div>
+    <!-- READY BUTTON (shown first) -->
+    <div id="readyWrap" style="text-align:center;margin-top:24px">
+      <p style="color:#9B948A;font-size:13px;margin-bottom:14px;">Read the scenario above, then tap when you're ready to decide.</p>
+      <button id="readyBtn" class="ready-btn" onclick="playerReady()">I'm Ready →</button>
+    </div>
+    <!-- OPTIONS (hidden until ready) -->
+    <div id="decisionWrap" style="display:none">
+      <div class="what-label">What do you do?</div>
+      <div id="optionsContainer"></div>
+    </div>
   </div>
 </div>
 
@@ -290,7 +308,7 @@ const DIFF_COLORS = ["#3A8C84","#3A8C84","#D4793A","#D4793A","#C75B7A","#C75B7A"
 
 const SCENARIOS = [
   {
-    context:"The Spill", emoji:"☕", timer:10, difficulty:0,
+    context:"The Spill", emoji:"☕", timer:6, difficulty:0,
     setup:"You're walking into a meeting with a full coffee. Someone bumps into you and it splashes all over your shirt. They don't even notice.",
     options:[
       {text:"Call after them — 'Hey, you just spilled my coffee!'",traits:{control:2,impulsive:2}},
@@ -299,7 +317,7 @@ const SCENARIOS = [
     ],
   },
   {
-    context:"The Text", emoji:"📱", timer:10, difficulty:1,
+    context:"The Text", emoji:"📱", timer:6, difficulty:1,
     setup:"Someone you've been interested in texts you 'we need to talk' with no context. You're in the middle of something important.",
     options:[
       {text:"Drop everything and reply immediately — 'About what?'",traits:{impulsive:3,risk:1}},
@@ -308,7 +326,7 @@ const SCENARIOS = [
     ],
   },
   {
-    context:"The Favor", emoji:"🤝", timer:12, difficulty:2,
+    context:"The Favor", emoji:"🤝", timer:7, difficulty:2,
     setup:"A close friend asks you to cover for them — they want you to tell their partner they were with you last night, but they weren't. They seem desperate.",
     options:[
       {text:"Agree this one time — they clearly need you right now",traits:{risk:2,impulsive:2}},
@@ -317,7 +335,7 @@ const SCENARIOS = [
     ],
   },
   {
-    context:"The Credit", emoji:"💼", timer:12, difficulty:3,
+    context:"The Credit", emoji:"💼", timer:7, difficulty:3,
     setup:"During a team presentation, your manager presents your idea as their own in front of senior leadership. Everyone is nodding along. Your coworkers glance at you.",
     options:[
       {text:"Speak up in the meeting — 'I'd love to add context since I developed this'",traits:{risk:3,control:1}},
@@ -326,7 +344,7 @@ const SCENARIOS = [
     ],
   },
   {
-    context:"The Secret", emoji:"🔒", timer:15, difficulty:4,
+    context:"The Secret", emoji:"🔒", timer:8, difficulty:4,
     setup:"You accidentally find out that a friend is planning to drop out of school to pursue a business idea you think is genuinely terrible. They haven't told anyone else yet and seem excited.",
     options:[
       {text:"Be honest — tell them directly that you think it's a mistake",traits:{control:2,risk:2}},
@@ -335,7 +353,7 @@ const SCENARIOS = [
     ],
   },
   {
-    context:"The Discovery", emoji:"📋", timer:15, difficulty:5,
+    context:"The Discovery", emoji:"📋", timer:8, difficulty:5,
     setup:"You discover that a coworker you genuinely like has been quietly inflating their numbers on team reports. Nobody else has noticed. Reporting it could get them fired during a really hard time in their life.",
     options:[
       {text:"Report it — integrity matters more than personal loyalty",traits:{control:3,strategic:1}},
@@ -344,7 +362,7 @@ const SCENARIOS = [
     ],
   },
   {
-    context:"The Dilemma", emoji:"⚖️", timer:18, difficulty:6,
+    context:"The Dilemma", emoji:"⚖️", timer:10, difficulty:6,
     setup:"You're offered your dream job — but taking it means relocating across the country, leaving behind a parent who's recently been diagnosed with a chronic illness. They insist they'll be fine and want you to go. You're not sure they mean it.",
     options:[
       {text:"Take the job — they told you to go, and you can't build your future around guilt",traits:{risk:3,impulsive:1}},
@@ -448,12 +466,12 @@ function showScenario() {
   badge.style.background = DIFF_COLORS[s.difficulty] + '18';
 
   document.getElementById('scenarioTitle').innerHTML = `<span>${s.emoji}</span> ${s.context}`;
-  document.getElementById('timerNote').textContent = `${s.timer} seconds to decide`;
+  document.getElementById('timerNote').textContent = `${s.timer} seconds to decide once you're ready`;
 
   // Scenario text
   document.getElementById('scenarioText').textContent = `"${s.setup}"`;
 
-  // Options
+  // Build options (hidden)
   const oc = document.getElementById('optionsContainer');
   oc.innerHTML = '';
   s.options.forEach((opt, i) => {
@@ -467,15 +485,41 @@ function showScenario() {
     oc.appendChild(btn);
   });
 
+  // Show ready button, hide options + dim timer
+  document.getElementById('readyWrap').style.display = 'block';
+  document.getElementById('decisionWrap').style.display = 'none';
+  document.getElementById('timerWrap').style.opacity = '0.25';
+  document.getElementById('timerNum').textContent = s.timer;
+  // Reset timer circle to full
+  const circ = 2 * Math.PI * 34;
+  document.getElementById('timerCircle').style.strokeDashoffset = 0;
+  document.getElementById('timerCircle').style.stroke = '#D4793A';
+  document.getElementById('timerNum').className = 'timer-num';
+
   // Reset body animation
   const body = document.getElementById('scenarioBody');
   body.style.animation = 'none';
-  body.offsetHeight; // trigger reflow
+  body.offsetHeight;
   body.style.animation = 'fadeUp 0.7s cubic-bezier(0.16,1,0.3,1)';
 
-  // Timer
-  startTimer(s.timer);
   showScreen('scenario');
+}
+
+function playerReady() {
+  const s = SCENARIOS[currentQ];
+
+  // Hide ready button, show options
+  document.getElementById('readyWrap').style.display = 'none';
+  document.getElementById('decisionWrap').style.display = 'block';
+  document.getElementById('timerWrap').style.opacity = '1';
+
+  // Animate options in
+  document.getElementById('decisionWrap').style.animation = 'none';
+  document.getElementById('decisionWrap').offsetHeight;
+  document.getElementById('decisionWrap').style.animation = 'fadeUp 0.5s cubic-bezier(0.16,1,0.3,1)';
+
+  // NOW start the timer
+  startTimer(s.timer);
 }
 
 function startTimer(total) {
